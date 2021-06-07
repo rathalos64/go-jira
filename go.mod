@@ -1,4 +1,4 @@
-module github.com/rathalos64/go-jira
+module github.com/rathalos64/golang-jira
 
 go 1.15
 
