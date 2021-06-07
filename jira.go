@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -292,7 +293,8 @@ func (c *Client) NewMultiPartRequest(method, urlStr string, buf *bytes.Buffer) (
 // The API response is JSON decoded and stored in the value pointed to by v, or returned as an error if an API error has occurred.
 func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
 	if c.dry && req.Method != http.MethodGet {
-		return &Response{Response: &http.Response{}}, nil
+		fake := bytes.NewBuffer([]byte("{}"))
+		return &Response{Response: &http.Response{Body: ioutil.NopCloser(fake)}}, nil
 	}
 
 	httpResp, err := c.client.Do(req)
