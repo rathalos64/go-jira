@@ -31,6 +31,9 @@ type Client struct {
 	// HTTP client used to communicate with the API.
 	client httpClient
 
+	// Whether non-GET requests are executed
+	dry bool
+
 	// Base URL for API requests.
 	baseURL *url.URL
 
@@ -58,6 +61,20 @@ type Client struct {
 	IssueLinkType    *IssueLinkTypeService
 	Organization     *OrganizationService
 	ServiceDesk      *ServiceDeskService
+}
+
+func (c *Client) SetDry(dry bool) {
+	c.dry = dry
+}
+
+func NewClientDry(httpClient httpClient, baseURL string) (*Client, error) {
+	client, err := NewClient(httpClient, baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	client.SetDry(true)
+	return client, nil
 }
 
 // NewClient returns a new Jira API client.
@@ -274,6 +291,10 @@ func (c *Client) NewMultiPartRequest(method, urlStr string, buf *bytes.Buffer) (
 // Do sends an API request and returns the API response.
 // The API response is JSON decoded and stored in the value pointed to by v, or returned as an error if an API error has occurred.
 func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
+	if c.dry && req.Method != http.MethodGet {
+		return &Response{Response: &http.Response{}}, nil
+	}
+
 	httpResp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
